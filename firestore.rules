@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Tylko zalogowani użytkownicy (bibliotekarz) mają dostęp
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Bardziej szczegółowe zasady (opcjonalnie):
+    
+    // Muzycy
+    match /musicians/{musicianId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Nuty
+    match /scores/{scoreId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Wypożyczenia
+    match /loans/{loanId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Ustawienia
+    match /settings/{settingId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+

@@ -1,0 +1,28 @@
+{
+  "name": "bibliotekarz-opery-monorepo",
+  "version": "1.0.0",
+  "description": "Aplikacja do zarządzania wypożyczeniami nut w operze",
+  "private": true,
+  "scripts": {
+    "dev": "cd app && npm run dev",
+    "build": "cd app && npm run build",
+    "build:functions": "cd functions && npm run build",
+    "deploy": "npm run build && firebase deploy",
+    "deploy:hosting": "npm run build && firebase deploy --only hosting",
+    "deploy:functions": "npm run build:functions && firebase deploy --only functions",
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "serve": "cd app && npm run preview",
+    "logs": "firebase functions:log",
+    "emulators": "firebase emulators:start"
+  },
+  "keywords": [
+    "opera",
+    "library",
+    "music",
+    "sheet-music",
+    "pwa"
+  ],
+  "author": "Marcin",
+  "license": "UNLICENSED"
+}
+
