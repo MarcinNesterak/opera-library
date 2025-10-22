@@ -26,21 +26,21 @@ export default function Navigation() {
   }
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-pastel-beige shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-20">
           <div className="flex space-x-8">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                className={`inline-flex items-center px-1 pt-1 border-b-3 text-lg font-medium transition-colors ${
                   isActive(item.path)
-                    ? 'border-gray-900 text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                    ? 'border-pastel-burgundy text-gray-900'
+                    : 'border-transparent text-gray-600 hover:border-pastel-gold hover:text-gray-800'
                 }`}
               >
-                <span className="mr-2">{item.icon}</span>
+                <span className="mr-2 text-2xl">{item.icon}</span>
                 {item.label}
               </Link>
             ))}
@@ -48,7 +48,7 @@ export default function Navigation() {
           <div className="flex items-center">
             <button
               onClick={handleLogout}
-              className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+              className="text-gray-600 hover:text-pastel-burgundy text-lg font-medium transition-colors"
             >
               Wyloguj
             </button>

@@ -11,7 +11,7 @@ export default function Loans() {
   const [scores, setScores] = useState<Score[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'returned'>('all')
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'returned'>('active')
   const [formData, setFormData] = useState({
     musicianId: '',
     scoreId: '',
@@ -178,7 +178,7 @@ export default function Loans() {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-pastel-gold border-t-pastel-burgundy"></div>
         </div>
       </Layout>
     )
@@ -188,44 +188,44 @@ export default function Loans() {
     <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Wypożyczenia</h1>
+          <h1 className="text-4xl font-bold text-gray-900">Wypożyczenia</h1>
           <button
             onClick={openAddModal}
-            className="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-900"
+            className="bg-pastel-burgundy text-white px-6 py-3 text-lg font-semibold rounded-xl hover:bg-opacity-90 shadow-lg transition-all"
           >
             + Nowe wypożyczenie
           </button>
         </div>
 
         {/* Filtry */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="flex space-x-4">
-            <button
-              onClick={() => setFilterStatus('all')}
-              className={`px-4 py-2 rounded-md ${
-                filterStatus === 'all'
-                  ? 'bg-gray-800 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Wszystkie ({loans.length})
-            </button>
+        <div className="bg-pastel-peach p-6 rounded-xl shadow-lg border-2 border-pastel-gold">
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={() => setFilterStatus('active')}
-              className={`px-4 py-2 rounded-md ${
+              className={`px-5 py-3 text-base font-semibold rounded-lg transition-all ${
                 filterStatus === 'active'
-                  ? 'bg-yellow-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? 'bg-yellow-400 text-gray-900 shadow-md'
+                  : 'bg-pastel-beige text-gray-700 hover:bg-pastel-gold'
               }`}
             >
               Aktywne ({loans.filter(l => l.status === 'active').length})
             </button>
             <button
+              onClick={() => setFilterStatus('all')}
+              className={`px-5 py-3 text-base font-semibold rounded-lg transition-all ${
+                filterStatus === 'all'
+                  ? 'bg-pastel-burgundy text-white shadow-md'
+                  : 'bg-pastel-beige text-gray-700 hover:bg-pastel-gold'
+              }`}
+            >
+              Wszystkie ({loans.length})
+            </button>
+            <button
               onClick={() => setFilterStatus('returned')}
-              className={`px-4 py-2 rounded-md ${
+              className={`px-5 py-3 text-base font-semibold rounded-lg transition-all ${
                 filterStatus === 'returned'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? 'bg-green-400 text-gray-900 shadow-md'
+                  : 'bg-pastel-beige text-gray-700 hover:bg-pastel-gold'
               }`}
             >
               Zwrócone ({loans.filter(l => l.status === 'returned').length})
@@ -233,73 +233,73 @@ export default function Loans() {
           </div>
         </div>
 
-        {/* Lista wypożyczeń */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        {/* Lista wypożyczeń - widok tabeli na większych ekranach */}
+        <div className="hidden md:block bg-pastel-lavender shadow-lg rounded-xl overflow-hidden border-2 border-pastel-gold">
+          <table className="min-w-full divide-y-2 divide-pastel-gold">
+            <thead className="bg-pastel-beige">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Muzyk
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Nuty
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Data wypożyczenia
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Data zwrotu
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-right text-base font-bold text-gray-800 uppercase tracking-wider">
                   Akcje
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-pastel-gold">
               {filteredLoans.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-6 text-center text-gray-600 text-lg">
                     Brak wypożyczeń
                   </td>
                 </tr>
               ) : (
                 filteredLoans.map((loan) => (
-                  <tr key={loan.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
+                  <tr key={loan.id} className="hover:bg-pastel-cream transition-colors">
+                    <td className="px-6 py-5">
+                      <div className="text-base font-bold text-gray-900">
                         {getMusicianName(loan.musicianId)}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
+                    <td className="px-6 py-5">
+                      <div className="text-base text-gray-800">
                         {getScoreInfo(loan.scoreId)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
                       {loan.loanDate.toLocaleDateString('pl-PL')}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
                       {loan.returnDate ? loan.returnDate.toLocaleDateString('pl-PL') : '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-5 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        className={`px-3 py-2 inline-flex text-sm font-bold rounded-lg ${
                           loan.status === 'active'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-green-100 text-green-800'
+                            ? 'bg-yellow-200 text-yellow-900'
+                            : 'bg-green-200 text-green-900'
                         }`}
                       >
                         {loan.status === 'active' ? 'Wypożyczone' : 'Zwrócone'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-5 whitespace-nowrap text-right text-base font-medium">
                       {loan.status === 'active' && (
                         <button
                           onClick={() => handleReturn(loan.id)}
-                          className="text-green-600 hover:text-green-900"
+                          className="text-green-700 hover:text-green-900 font-semibold"
                         >
                           Oznacz jako zwrócone
                         </button>
@@ -311,6 +311,49 @@ export default function Loans() {
             </tbody>
           </table>
         </div>
+
+        {/* Lista wypożyczeń - widok kart na małych ekranach */}
+        <div className="md:hidden space-y-4">
+          {filteredLoans.length === 0 ? (
+            <div className="bg-pastel-peach rounded-xl shadow-lg p-8 text-center text-gray-600 text-lg border-2 border-pastel-gold">
+              Brak wypożyczeń
+            </div>
+          ) : (
+            filteredLoans.map((loan) => (
+              <div key={loan.id} className="bg-pastel-lavender rounded-xl shadow-lg border-2 border-pastel-gold">
+                <div className="p-5 space-y-3">
+                  <div>
+                    <span
+                      className={`px-3 py-2 inline-flex text-sm font-bold rounded-lg float-right ${
+                        loan.status === 'active'
+                          ? 'bg-yellow-200 text-yellow-900'
+                          : 'bg-green-200 text-green-900'
+                      }`}
+                    >
+                      {loan.status === 'active' ? 'Wypożyczone' : 'Zwrócone'}
+                    </span>
+                    <h3 className="text-lg font-bold text-gray-900 pr-24">{getMusicianName(loan.musicianId)}</h3>
+                  </div>
+                  <div className="text-base text-gray-700 space-y-2 pt-2">
+                    <p><strong>Nuty:</strong> {getScoreInfo(loan.scoreId)}</p>
+                    <p><strong>Wypożyczono:</strong> {loan.loanDate.toLocaleDateString('pl-PL')}</p>
+                    <p><strong>Zwrócono:</strong> {loan.returnDate ? loan.returnDate.toLocaleDateString('pl-PL') : '-'}</p>
+                  </div>
+                </div>
+                {loan.status === 'active' && (
+                  <div className="bg-pastel-gold px-5 py-4 text-right rounded-b-xl">
+                    <button
+                      onClick={() => handleReturn(loan.id)}
+                      className="text-base font-semibold text-green-800 hover:text-green-900"
+                    >
+                      Oznacz jako zwrócone
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Modal dodawania wypożyczenia */}
@@ -319,23 +362,23 @@ export default function Loans() {
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowModal(false)}></div>
 
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className="inline-block align-bottom bg-pastel-peach rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border-2 border-pastel-gold">
               <form onSubmit={handleSubmit}>
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                <div className="bg-pastel-peach px-6 pt-6 pb-5 sm:p-8 sm:pb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-5">
                     Nowe wypożyczenie
                   </h3>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-semibold text-gray-800 mb-2">
                         Wybierz muzyka *
                       </label>
                       <select
                         required
                         value={formData.musicianId}
                         onChange={(e) => setFormData({ ...formData, musicianId: e.target.value })}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                        className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
                       >
                         <option value="">-- Wybierz muzyka --</option>
                         {musicians.map((musician) => (
@@ -347,14 +390,14 @@ export default function Loans() {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-semibold text-gray-800 mb-2">
                         Wybierz nuty *
                       </label>
                       <select
                         required
                         value={formData.scoreId}
                         onChange={(e) => setFormData({ ...formData, scoreId: e.target.value })}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                        className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
                       >
                         <option value="">-- Wybierz nuty --</option>
                         {scores.map((score) => (
@@ -365,25 +408,25 @@ export default function Loans() {
                       </select>
                     </div>
 
-                    <div className="bg-blue-50 p-3 rounded-md">
-                      <p className="text-sm text-blue-800">
+                    <div className="bg-blue-100 p-4 rounded-lg border-2 border-blue-200">
+                      <p className="text-base text-blue-900 font-medium">
                         ℹ️ Po dodaniu wypożyczenia, muzyk automatycznie otrzyma powiadomienie email.
                       </p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <div className="bg-pastel-gold px-6 py-4 sm:px-8 sm:flex sm:flex-row-reverse gap-3">
                   <button
                     type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-800 text-base font-medium text-white hover:bg-gray-900 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+                    className="w-full inline-flex justify-center rounded-xl border-2 border-pastel-burgundy shadow-lg px-6 py-3 bg-pastel-burgundy text-lg font-bold text-white hover:bg-opacity-90 focus:outline-none sm:w-auto transition-all"
                   >
                     Dodaj wypożyczenie
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="mt-3 w-full inline-flex justify-center rounded-xl border-2 border-gray-400 shadow-md px-6 py-3 bg-white text-lg font-semibold text-gray-700 hover:bg-gray-100 focus:outline-none sm:mt-0 sm:w-auto transition-all"
                   >
                     Anuluj
                   </button>

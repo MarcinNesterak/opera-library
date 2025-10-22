@@ -103,7 +103,7 @@ export default function Musicians() {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-pastel-gold border-t-pastel-burgundy"></div>
         </div>
       </Layout>
     )
@@ -113,82 +113,82 @@ export default function Musicians() {
     <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Muzycy</h1>
+          <h1 className="text-4xl font-bold text-gray-900">Muzycy</h1>
           <button
             onClick={openAddModal}
-            className="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-900"
+            className="bg-pastel-burgundy text-white px-6 py-3 text-lg font-semibold rounded-xl hover:bg-opacity-90 shadow-lg transition-all"
           >
             + Dodaj muzyka
           </button>
         </div>
 
         {/* Wyszukiwarka */}
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-pastel-peach p-6 rounded-xl shadow-lg border-2 border-pastel-gold">
           <input
             type="text"
-            placeholder="Szukaj po imieniu, nazwisku lub instrumencie..."
+            placeholder="🔍 Szukaj po imieniu, nazwisku lub instrumencie..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+            className="w-full px-5 py-3 text-base border-2 border-pastel-gold rounded-lg focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
           />
         </div>
 
-        {/* Lista muzyków */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        {/* Lista muzyków - widok tabeli na większych ekranach */}
+        <div className="hidden md:block bg-pastel-beige shadow-lg rounded-xl overflow-hidden border-2 border-pastel-gold">
+          <table className="min-w-full divide-y-2 divide-pastel-gold">
+            <thead className="bg-pastel-lavender">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Imię i nazwisko
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Instrument
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Email
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Telefon
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-right text-base font-bold text-gray-800 uppercase tracking-wider">
                   Akcje
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-pastel-gold">
               {filteredMusicians.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-6 text-center text-gray-600 text-lg">
                     Brak muzyków w bazie
                   </td>
                 </tr>
               ) : (
                 filteredMusicians.map((musician) => (
-                  <tr key={musician.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
+                  <tr key={musician.id} className="hover:bg-pastel-cream transition-colors">
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="text-base font-bold text-gray-900">
                         {musician.firstName} {musician.lastName}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
                       {musician.instrument}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
                       {musician.email}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
                       {musician.phone || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-5 whitespace-nowrap text-right text-base font-medium space-x-3">
                       <button
                         onClick={() => openEditModal(musician)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
+                        className="text-blue-700 hover:text-blue-900 font-semibold"
                       >
                         Edytuj
                       </button>
                       <button
                         onClick={() => handleDelete(musician.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-700 hover:text-red-900 font-semibold"
                       >
                         Usuń
                       </button>
@@ -198,6 +198,40 @@ export default function Musicians() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Lista muzyków - widok kart na małych ekranach */}
+        <div className="md:hidden space-y-4">
+          {filteredMusicians.length === 0 ? (
+            <div className="bg-pastel-peach rounded-xl shadow-lg p-8 text-center text-gray-600 text-lg border-2 border-pastel-gold">
+              Brak muzyków w bazie
+            </div>
+          ) : (
+            filteredMusicians.map((musician) => (
+              <div key={musician.id} className="bg-pastel-beige rounded-xl shadow-lg border-2 border-pastel-gold">
+                <div className="p-5 space-y-3">
+                  <h3 className="text-xl font-bold text-gray-900">{musician.firstName} {musician.lastName}</h3>
+                  <p className="text-base text-gray-700"><strong>Instrument:</strong> {musician.instrument}</p>
+                  <p className="text-base text-gray-700 truncate"><strong>Email:</strong> {musician.email}</p>
+                  <p className="text-base text-gray-700"><strong>Telefon:</strong> {musician.phone || '-'}</p>
+                </div>
+                <div className="bg-pastel-gold px-5 py-4 flex justify-end space-x-4 rounded-b-xl">
+                  <button
+                    onClick={() => openEditModal(musician)}
+                    className="text-base font-semibold text-blue-700 hover:text-blue-900"
+                  >
+                    Edytuj
+                  </button>
+                  <button
+                    onClick={() => handleDelete(musician.id)}
+                    className="text-base font-semibold text-red-700 hover:text-red-900"
+                  >
+                    Usuń
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

@@ -100,7 +100,7 @@ export default function Scores() {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-pastel-gold border-t-pastel-burgundy"></div>
         </div>
       </Layout>
     )
@@ -110,82 +110,82 @@ export default function Scores() {
     <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Nuty</h1>
+          <h1 className="text-4xl font-bold text-gray-900">Nuty</h1>
           <button
             onClick={openAddModal}
-            className="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-900"
+            className="bg-pastel-burgundy text-white px-6 py-3 text-lg font-semibold rounded-xl hover:bg-opacity-90 shadow-lg transition-all"
           >
             + Dodaj nuty
           </button>
         </div>
 
         {/* Wyszukiwarka */}
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-pastel-lavender p-6 rounded-xl shadow-lg border-2 border-pastel-gold">
           <input
             type="text"
-            placeholder="Szukaj po tytule, kompozytorze, głosie lub numerze katalogowym..."
+            placeholder="🔍 Szukaj po tytule, kompozytorze, głosie lub numerze katalogowym..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+            className="w-full px-5 py-3 text-base border-2 border-pastel-gold rounded-lg focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
           />
         </div>
 
-        {/* Lista nut */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        {/* Lista nut - widok tabeli na większych ekranach */}
+        <div className="hidden md:block bg-pastel-peach shadow-lg rounded-xl overflow-hidden border-2 border-pastel-gold">
+          <table className="min-w-full divide-y-2 divide-pastel-gold">
+            <thead className="bg-pastel-beige">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Tytuł
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Kompozytor
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Głos/Partia
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Nr katalogowy
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-right text-base font-bold text-gray-800 uppercase tracking-wider">
                   Akcje
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-pastel-gold">
               {filteredScores.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-6 text-center text-gray-600 text-lg">
                     Brak nut w bazie
                   </td>
                 </tr>
               ) : (
                 filteredScores.map((score) => (
-                  <tr key={score.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
+                  <tr key={score.id} className="hover:bg-pastel-cream transition-colors">
+                    <td className="px-6 py-5">
+                      <div className="text-base font-bold text-gray-900">
                         {score.title}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-6 py-5 text-base text-gray-700">
                       {score.composer}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-6 py-5 text-base text-gray-700">
                       {score.part}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-6 py-5 text-base text-gray-700">
                       {score.catalogNumber || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-5 whitespace-nowrap text-right text-base font-medium space-x-3">
                       <button
                         onClick={() => openEditModal(score)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
+                        className="text-blue-700 hover:text-blue-900 font-semibold"
                       >
                         Edytuj
                       </button>
                       <button
                         onClick={() => handleDelete(score.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-700 hover:text-red-900 font-semibold"
                       >
                         Usuń
                       </button>
@@ -195,6 +195,40 @@ export default function Scores() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Lista nut - widok kart na małych ekranach */}
+        <div className="md:hidden space-y-4">
+          {filteredScores.length === 0 ? (
+            <div className="bg-pastel-lavender rounded-xl shadow-lg p-8 text-center text-gray-600 text-lg border-2 border-pastel-gold">
+              Brak nut w bazie
+            </div>
+          ) : (
+            filteredScores.map((score) => (
+              <div key={score.id} className="bg-pastel-peach rounded-xl shadow-lg border-2 border-pastel-gold">
+                <div className="p-5 space-y-3">
+                  <h3 className="text-xl font-bold text-gray-900">{score.title}</h3>
+                  <p className="text-base text-gray-700"><strong>Kompozytor:</strong> {score.composer}</p>
+                  <p className="text-base text-gray-700"><strong>Głos/Partia:</strong> {score.part}</p>
+                  <p className="text-base text-gray-700"><strong>Nr kat.:</strong> {score.catalogNumber || '-'}</p>
+                </div>
+                <div className="bg-pastel-gold px-5 py-4 flex justify-end space-x-4 rounded-b-xl">
+                  <button
+                    onClick={() => openEditModal(score)}
+                    className="text-base font-semibold text-blue-700 hover:text-blue-900"
+                  >
+                    Edytuj
+                  </button>
+                  <button
+                    onClick={() => handleDelete(score.id)}
+                    className="text-base font-semibold text-red-700 hover:text-red-900"
+                  >
+                    Usuń
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

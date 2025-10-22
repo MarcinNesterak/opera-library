@@ -9,6 +9,12 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent; /* Disable gray tap highlight on iOS */
+  font-size: 18px; /* Większa podstawowa czcionka dla lepszej czytelności */
+}
+
+html {
+  touch-action: manipulation; /* Improve touch responsiveness */
 }
 
 code {
