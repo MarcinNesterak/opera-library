@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { collection, getDocs, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore'
-import { db, functions } from '../firebase'
+import { db } from '../firebase'
 import { Loan, Musician, Score } from '../types'
 import Layout from '../components/Layout'
-import { httpsCallable } from 'firebase/functions'
+// import { httpsCallable } from 'firebase/functions'
 
 export default function Loans() {
   const [loans, setLoans] = useState<Loan[]>([])
@@ -70,13 +70,13 @@ export default function Loans() {
     e.preventDefault()
     
     try {
-      const musician = musicians.find(m => m.id === formData.musicianId)
-      const score = scores.find(s => s.id === formData.scoreId)
+      // const musician = musicians.find(m => m.id === formData.musicianId)
+      // const score = scores.find(s => s.id === formData.scoreId)
       
-      if (!musician || !score) {
-        alert('Wybierz muzyka i nuty')
-        return
-      }
+      // if (!musician || !score) {
+      //   alert('Wybierz muzyka i nuty')
+      //   return
+      // }
 
       // Dodaj wypożyczenie
       await addDoc(collection(db, 'loans'), {
@@ -119,11 +119,11 @@ export default function Loans() {
     if (!confirm('Czy na pewno chcesz oznaczyć to wypożyczenie jako zwrócone?')) return
     
     try {
-      const loan = loans.find(l => l.id === loanId)
-      if (!loan) return
+      // const loan = loans.find(l => l.id === loanId)
+      // if (!loan) return
 
-      const musician = musicians.find(m => m.id === loan.musicianId)
-      const score = scores.find(s => s.id === loan.scoreId)
+      // const musician = musicians.find(m => m.id === loan.musicianId)
+      // const score = scores.find(s => s.id === loan.scoreId)
 
       // Aktualizuj wypożyczenie
       await updateDoc(doc(db, 'loans', loanId), {
