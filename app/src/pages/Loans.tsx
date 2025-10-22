@@ -89,6 +89,8 @@ export default function Loans() {
       })
 
       // Wyślij email powiadomienia
+      /* 
+      // TA SEKCJA JEST TYMCZASOWO WYŁĄCZONA - WYMAGA PLANU BLAZE
       try {
         const sendLoanEmail = httpsCallable(functions, 'sendLoanNotification')
         await sendLoanEmail({
@@ -103,6 +105,7 @@ export default function Loans() {
         console.error('Błąd wysyłania emaila:', emailError)
         // Kontynuuj mimo błędu emaila
       }
+      */
 
       setShowModal(false)
       loadData()
@@ -129,6 +132,8 @@ export default function Loans() {
       })
 
       // Wyślij email potwierdzenia zwrotu
+      /*
+      // TA SEKCJA JEST TYMCZASOWO WYŁĄCZONA - WYMAGA PLANU BLAZE
       if (musician && score) {
         try {
           const sendLoanEmail = httpsCallable(functions, 'sendLoanNotification')
@@ -144,6 +149,7 @@ export default function Loans() {
           console.error('Błąd wysyłania emaila:', emailError)
         }
       }
+      */
 
       loadData()
     } catch (error) {
