@@ -52,7 +52,7 @@ export default function Settings() {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-pastel-burgundy"></div>
         </div>
       </Layout>
     )
@@ -60,39 +60,39 @@ export default function Settings() {
 
   return (
     <Layout>
-      <div className="max-w-2xl space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Ustawienia</h1>
+      <div className="max-w-3xl mx-auto space-y-6">
+        <h1 className="text-4xl font-bold text-gray-900 text-center md:text-left">Ustawienia</h1>
 
         {successMessage && (
-          <div className="bg-green-50 border border-green-200 rounded-md p-4">
-            <p className="text-sm text-green-800">✓ {successMessage}</p>
+          <div className="bg-green-100 border-2 border-green-300 rounded-xl p-5 shadow-lg">
+            <p className="text-base text-green-900 font-semibold">✓ {successMessage}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Powiadomienia email</h2>
-            <p className="mt-1 text-sm text-gray-500">
+        <form onSubmit={handleSubmit} className="bg-pastel-peach shadow-lg rounded-xl border-2 border-pastel-gold">
+          <div className="px-6 py-5 border-b-2 border-pastel-gold">
+            <h2 className="text-2xl font-bold text-gray-900">📧 Powiadomienia email</h2>
+            <p className="mt-2 text-base text-gray-700">
               Konfiguracja automatycznych przypomnień dla muzyków
             </p>
           </div>
 
-          <div className="px-6 py-4 space-y-6">
-            <div className="flex items-center">
+          <div className="px-6 py-6 space-y-6 bg-white">
+            <div className="flex items-center gap-4">
               <input
                 type="checkbox"
                 id="emailEnabled"
                 checked={settings.emailEnabled}
                 onChange={(e) => setSettings({ ...settings, emailEnabled: e.target.checked })}
-                className="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+                className="h-6 w-6 text-pastel-burgundy focus:ring-2 focus:ring-pastel-burgundy border-2 border-pastel-gold rounded"
               />
-              <label htmlFor="emailEnabled" className="ml-3 block text-sm font-medium text-gray-700">
+              <label htmlFor="emailEnabled" className="block text-base font-semibold text-gray-800 cursor-pointer">
                 Włącz powiadomienia email
               </label>
             </div>
 
             <div>
-              <label htmlFor="reminderInterval" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="reminderInterval" className="block text-base font-semibold text-gray-800 mb-3">
                 Interwał przypomnień (w dniach)
               </label>
               <input
@@ -102,17 +102,17 @@ export default function Settings() {
                 max="30"
                 value={settings.reminderIntervalDays}
                 onChange={(e) => setSettings({ ...settings, reminderIntervalDays: parseInt(e.target.value) })}
-                className="block w-full max-w-xs border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                className="block w-full max-w-xs border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy disabled:opacity-50 disabled:bg-gray-100"
                 disabled={!settings.emailEnabled}
               />
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-3 text-base text-gray-700">
                 Przypomnienia będą wysyłane co {settings.reminderIntervalDays} {settings.reminderIntervalDays === 1 ? 'dzień' : 'dni'} do muzyków z aktywnymi wypożyczeniami
               </p>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <h3 className="text-sm font-medium text-blue-900 mb-2">ℹ️ Jak działają powiadomienia?</h3>
-              <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+            <div className="bg-pastel-lavender border-2 border-pastel-gold rounded-xl p-5">
+              <h3 className="text-base font-bold text-gray-900 mb-3">ℹ️ Jak działają powiadomienia?</h3>
+              <ul className="text-base text-gray-800 space-y-2 list-disc list-inside">
                 <li>Przy dodaniu wypożyczenia - muzyk dostaje email z potwierdzeniem</li>
                 <li>Co X dni (według ustawień) - muzyk dostaje przypomnienie o zwrot nut</li>
                 <li>Przy zwrocie - muzyk dostaje potwierdzenie zwrotu</li>
@@ -120,32 +120,32 @@ export default function Settings() {
             </div>
           </div>
 
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <div className="px-6 py-5 bg-pastel-beige border-t-2 border-pastel-gold rounded-b-xl">
             <button
               type="submit"
               disabled={saving}
-              className="bg-gray-800 text-white px-6 py-2 rounded-md hover:bg-gray-900 disabled:opacity-50"
+              className="bg-pastel-burgundy text-white px-8 py-3 text-lg font-semibold rounded-xl hover:bg-opacity-90 disabled:opacity-50 shadow-lg transition-all w-full md:w-auto"
             >
-              {saving ? 'Zapisywanie...' : 'Zapisz ustawienia'}
+              {saving ? 'Zapisywanie...' : '💾 Zapisz ustawienia'}
             </button>
           </div>
         </form>
 
         {/* Informacje o aplikacji */}
-        <div className="bg-white shadow rounded-lg px-6 py-4">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">O aplikacji</h2>
-          <dl className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Wersja:</dt>
-              <dd className="text-gray-900 font-medium">1.0.0</dd>
+        <div className="bg-pastel-lavender shadow-lg rounded-xl px-6 py-6 border-2 border-pastel-gold">
+          <h2 className="text-2xl font-bold text-gray-900 mb-5">📱 O aplikacji</h2>
+          <dl className="space-y-4 text-base">
+            <div className="flex justify-between items-center py-3 border-b border-pastel-gold">
+              <dt className="text-gray-700 font-medium">Wersja:</dt>
+              <dd className="text-gray-900 font-bold">1.0.0</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Typ aplikacji:</dt>
-              <dd className="text-gray-900 font-medium">PWA (Progressive Web App)</dd>
+            <div className="flex justify-between items-center py-3 border-b border-pastel-gold">
+              <dt className="text-gray-700 font-medium">Typ aplikacji:</dt>
+              <dd className="text-gray-900 font-bold">PWA (Progressive Web App)</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Backend:</dt>
-              <dd className="text-gray-900 font-medium">Firebase</dd>
+            <div className="flex justify-between items-center py-3">
+              <dt className="text-gray-700 font-medium">Backend:</dt>
+              <dd className="text-gray-900 font-bold">Firebase</dd>
             </div>
           </dl>
         </div>
