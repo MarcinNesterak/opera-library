@@ -228,11 +228,11 @@ export default function Scores() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold text-gray-900">Nuty</h1>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center items-center gap-4">
+          <h1 className="text-4xl font-bold text-gray-900 text-center md:text-left">Nuty</h1>
           <button
             onClick={openAddModal}
-            className="bg-pastel-burgundy text-white px-6 py-3 text-lg font-semibold rounded-xl hover:bg-opacity-90 shadow-lg transition-all"
+            className="w-full md:w-auto bg-pastel-burgundy text-white px-6 py-3 text-lg font-semibold rounded-xl hover:bg-opacity-90 shadow-lg transition-all"
           >
             + Dodaj nuty
           </button>

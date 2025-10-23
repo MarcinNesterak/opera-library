@@ -18,6 +18,7 @@ export default function Loans() {
   })
   const [musicianSearch, setMusicianSearch] = useState('')
   const [scoreSearch, setScoreSearch] = useState('')
+  const [loanSearch, setLoanSearch] = useState('')
 
   useEffect(() => {
     loadData()
@@ -161,8 +162,43 @@ export default function Loans() {
   }
 
   const filteredLoans = loans.filter(loan => {
-    if (filterStatus === 'active') return loan.status === 'active'
-    if (filterStatus === 'returned') return loan.status === 'returned'
+    // Filtrowanie po statusie
+    if (filterStatus === 'active' && loan.status !== 'active') return false
+    if (filterStatus === 'returned' && loan.status !== 'returned') return false
+    
+    // Filtrowanie po wyszukiwaniu
+    if (loanSearch.trim().length > 0) {
+      const searchWords = loanSearch.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0)
+      
+      // Pobierz informacje o muzyku i nutach
+      const musician = musicians.find(m => m.id === loan.musicianId)
+      const score = scores.find(s => s.id === loan.scoreId)
+      
+      // Sprawdź czy wszystkie słowa występują w jakimkolwiek polu
+      const matchesSearch = searchWords.every(word => {
+        // Sprawdź w danych muzyka
+        const musicianMatch = musician && (
+          musician.firstName.toLowerCase().includes(word) ||
+          musician.lastName.toLowerCase().includes(word) ||
+          musician.instrument.toLowerCase().includes(word)
+        )
+        
+        // Sprawdź w danych nut
+        const scoreMatch = score && (
+          score.title.toLowerCase().includes(word) ||
+          score.composer.toLowerCase().includes(word) ||
+          score.part.toLowerCase().includes(word)
+        )
+        
+        // Sprawdź w dacie
+        const dateMatch = loan.loanDate.toLocaleDateString('pl-PL').includes(word)
+        
+        return musicianMatch || scoreMatch || dateMatch
+      })
+      
+      if (!matchesSearch) return false
+    }
+    
     return true
   })
 
@@ -225,22 +261,33 @@ export default function Loans() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold text-gray-900">Wypożyczenia</h1>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center items-center gap-4">
+          <h1 className="text-4xl font-bold text-gray-900 text-center md:text-left">Wypożyczenia</h1>
           <button
             onClick={openAddModal}
-            className="bg-pastel-burgundy text-white px-6 py-3 text-lg font-semibold rounded-xl hover:bg-opacity-90 shadow-lg transition-all"
+            className="w-full md:w-auto bg-pastel-burgundy text-white px-6 py-3 text-lg font-semibold rounded-xl hover:bg-opacity-90 shadow-lg transition-all"
           >
             + Nowe wypożyczenie
           </button>
         </div>
 
+        {/* Wyszukiwarka wypożyczeń */}
+        <div className="bg-pastel-lavender p-4 rounded-xl shadow-lg border-2 border-pastel-gold">
+          <input
+            type="text"
+            placeholder="🔍 Szukaj wypożyczeń po muzyku, utworze, instrumencie..."
+            value={loanSearch}
+            onChange={(e) => setLoanSearch(e.target.value)}
+            className="w-full px-5 py-3 text-base border-2 border-pastel-gold rounded-lg focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
+          />
+        </div>
+
         {/* Filtry */}
-        <div className="bg-pastel-peach p-6 rounded-xl shadow-lg border-2 border-pastel-gold">
-          <div className="flex flex-wrap gap-3">
+        <div className="bg-pastel-peach p-3 md:p-4 rounded-xl shadow-lg border-2 border-pastel-gold">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setFilterStatus('active')}
-              className={`px-5 py-3 text-base font-semibold rounded-lg transition-all ${
+              className={`flex-1 min-w-[100px] px-3 py-2 text-sm md:text-base font-semibold rounded-lg transition-all ${
                 filterStatus === 'active'
                   ? 'bg-yellow-400 text-gray-900 shadow-md'
                   : 'bg-pastel-beige text-gray-700 hover:bg-pastel-gold'
@@ -250,7 +297,7 @@ export default function Loans() {
             </button>
             <button
               onClick={() => setFilterStatus('all')}
-              className={`px-5 py-3 text-base font-semibold rounded-lg transition-all ${
+              className={`flex-1 min-w-[100px] px-3 py-2 text-sm md:text-base font-semibold rounded-lg transition-all ${
                 filterStatus === 'all'
                   ? 'bg-pastel-burgundy text-white shadow-md'
                   : 'bg-pastel-beige text-gray-700 hover:bg-pastel-gold'
@@ -260,7 +307,7 @@ export default function Loans() {
             </button>
             <button
               onClick={() => setFilterStatus('returned')}
-              className={`px-5 py-3 text-base font-semibold rounded-lg transition-all ${
+              className={`flex-1 min-w-[100px] px-3 py-2 text-sm md:text-base font-semibold rounded-lg transition-all ${
                 filterStatus === 'returned'
                   ? 'bg-green-400 text-gray-900 shadow-md'
                   : 'bg-pastel-beige text-gray-700 hover:bg-pastel-gold'

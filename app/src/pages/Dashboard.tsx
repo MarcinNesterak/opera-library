@@ -94,7 +94,7 @@ export default function Dashboard() {
   return (
     <Layout>
       <div className="space-y-6">
-        <h1 className="text-4xl font-bold text-gray-900">Panel główny</h1>
+        <h1 className="text-4xl font-bold text-gray-900 text-center md:text-left">Panel główny</h1>
 
         {/* Statystyki */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
