@@ -4,6 +4,72 @@ import { db } from '../firebase'
 import { Score } from '../types'
 import Layout from '../components/Layout'
 
+// Lista instrumentów orkiestry symfonicznej
+const ORCHESTRA_INSTRUMENTS = [
+  { category: 'Smyczki', instruments: [
+    'Skrzypce I',
+    'Skrzypce II',
+    'Altówka',
+    'Wiolonczela',
+    'Kontrabas',
+  ]},
+  { category: 'Dęte drewniane', instruments: [
+    'Flet I',
+    'Flet II',
+    'Piccolo',
+    'Obój I',
+    'Obój II',
+    'Rożek angielski',
+    'Klarnet I',
+    'Klarnet II',
+    'Klarnet basowy',
+    'Fagot I',
+    'Fagot II',
+    'Kontrafagot',
+  ]},
+  { category: 'Dęte blaszane', instruments: [
+    'Róg I',
+    'Róg II',
+    'Róg III',
+    'Róg IV',
+    'Trąbka I',
+    'Trąbka II',
+    'Trąbka III',
+    'Puzon I',
+    'Puzon II',
+    'Puzon III',
+    'Puzon basowy',
+    'Tuba',
+  ]},
+  { category: 'Perkusja', instruments: [
+    'Kotły',
+    'Talerze',
+    'Werbel',
+    'Bęben wielki',
+    'Trójkąt',
+    'Tamburyn',
+    'Dzwonki',
+    'Ksylofon',
+    'Wibrafon',
+    'Marimba',
+    'Gong',
+    'Kastaniety',
+  ]},
+  { category: 'Instrumenty klawiszowe', instruments: [
+    'Fortepian',
+    'Celesta',
+    'Organy',
+    'Klawesyn',
+  ]},
+  { category: 'Harfa', instruments: [
+    'Harfa',
+  ]},
+  { category: 'Inne', instruments: [
+    'Partytura (dyrygent)',
+    'Inne',
+  ]},
+]
+
 export default function Scores() {
   const [scores, setScores] = useState<Score[]>([])
   const [loading, setLoading] = useState(true)
@@ -16,6 +82,7 @@ export default function Scores() {
     part: '',
     catalogNumber: ''
   })
+  const [selectedInstruments, setSelectedInstruments] = useState<string[]>([])
 
   useEffect(() => {
     loadScores()
@@ -41,6 +108,7 @@ export default function Scores() {
   function openAddModal() {
     setEditingScore(null)
     setFormData({ title: '', composer: '', part: '', catalogNumber: '' })
+    setSelectedInstruments([])
     setShowModal(true)
   }
 
@@ -52,7 +120,29 @@ export default function Scores() {
       part: score.part,
       catalogNumber: score.catalogNumber || ''
     })
+    setSelectedInstruments([])
     setShowModal(true)
+  }
+
+  function toggleInstrument(instrument: string) {
+    setSelectedInstruments(prev => 
+      prev.includes(instrument)
+        ? prev.filter(i => i !== instrument)
+        : [...prev, instrument]
+    )
+  }
+
+  function toggleAllInCategory(category: string) {
+    const categoryInstruments = ORCHESTRA_INSTRUMENTS.find(g => g.category === category)?.instruments || []
+    const allSelected = categoryInstruments.every(inst => selectedInstruments.includes(inst))
+    
+    if (allSelected) {
+      // Odznacz wszystkie z tej kategorii
+      setSelectedInstruments(prev => prev.filter(i => !categoryInstruments.includes(i)))
+    } else {
+      // Zaznacz wszystkie z tej kategorii
+      setSelectedInstruments(prev => [...new Set([...prev, ...categoryInstruments])])
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -60,14 +150,29 @@ export default function Scores() {
     
     try {
       if (editingScore) {
+        // Tryb edycji - edytujemy tylko jeden rekord
         await updateDoc(doc(db, 'scores', editingScore.id), {
           ...formData,
         })
       } else {
-        await addDoc(collection(db, 'scores'), {
-          ...formData,
-          createdAt: Timestamp.now()
-        })
+        // Tryb dodawania - dodajemy wiele rekordów jednocześnie
+        if (selectedInstruments.length === 0) {
+          alert('Wybierz przynajmniej jeden instrument')
+          return
+        }
+
+        // Dodaj osobny rekord dla każdego wybranego instrumentu
+        const promises = selectedInstruments.map(instrument => 
+          addDoc(collection(db, 'scores'), {
+            title: formData.title,
+            composer: formData.composer,
+            part: instrument,
+            catalogNumber: formData.catalogNumber,
+            createdAt: Timestamp.now()
+          })
+        )
+
+        await Promise.all(promises)
       }
       setShowModal(false)
       loadScores()
@@ -89,12 +194,26 @@ export default function Scores() {
     }
   }
 
-  const filteredScores = scores.filter(s =>
-    s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.composer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.part.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (s.catalogNumber && s.catalogNumber.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
+  const filteredScores = scores.filter(s => {
+    // Rozbij wyszukiwane wyrazy na pojedyncze słowa
+    const searchWords = searchTerm.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0)
+    
+    // Jeśli nie ma żadnego słowa do wyszukania, pokaż wszystko
+    if (searchWords.length === 0) return true
+    
+    // Sprawdź czy każde słowo występuje w którymkolwiek polu
+    return searchWords.every(word => {
+      const title = s.title.toLowerCase()
+      const composer = s.composer.toLowerCase()
+      const part = s.part.toLowerCase()
+      const catalog = s.catalogNumber ? s.catalogNumber.toLowerCase() : ''
+      
+      return title.includes(word) || 
+             composer.includes(word) || 
+             part.includes(word) || 
+             catalog.includes(word)
+    })
+  })
 
   if (loading) {
     return (
@@ -123,7 +242,7 @@ export default function Scores() {
         <div className="bg-pastel-lavender p-6 rounded-xl shadow-lg border-2 border-pastel-gold">
           <input
             type="text"
-            placeholder="🔍 Szukaj po tytule, kompozytorze, głosie lub numerze katalogowym..."
+            placeholder="🔍 Szukaj po wielu słowach, np. 'bolero puzon II' lub 'ravel flet'..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-5 py-3 text-base border-2 border-pastel-gold rounded-lg focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
@@ -238,74 +357,157 @@ export default function Scores() {
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowModal(false)}></div>
 
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className="inline-block align-bottom bg-pastel-lavender rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border-2 border-pastel-gold">
               <form onSubmit={handleSubmit}>
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                <div className="bg-pastel-lavender px-6 pt-6 pb-5 sm:p-8 sm:pb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-5">
                     {editingScore ? 'Edytuj nuty' : 'Dodaj nuty'}
                   </h3>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Tytuł utworu *</label>
+                      <label className="block text-base font-semibold text-gray-800 mb-2">Tytuł utworu *</label>
                       <input
                         type="text"
                         required
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                        className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
                         placeholder="np. Bolero"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Kompozytor *</label>
+                      <label className="block text-base font-semibold text-gray-800 mb-2">Kompozytor *</label>
                       <input
                         type="text"
                         required
                         value={formData.composer}
                         onChange={(e) => setFormData({ ...formData, composer: e.target.value })}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                        className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
                         placeholder="np. Maurice Ravel"
                       />
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Głos/Partia *</label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.part}
-                        onChange={(e) => setFormData({ ...formData, part: e.target.value })}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-                        placeholder="np. Trąbka 2, Skrzypce I"
-                      />
-                    </div>
+                    {editingScore ? (
+                      // Tryb edycji - pokazujemy dropdown
+                      <div>
+                        <label className="block text-base font-semibold text-gray-800 mb-2">Instrument/Głos *</label>
+                        <select
+                          required
+                          value={formData.part}
+                          onChange={(e) => setFormData({ ...formData, part: e.target.value })}
+                          className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
+                        >
+                          <option value="">-- Wybierz instrument --</option>
+                          {ORCHESTRA_INSTRUMENTS.map((group) => (
+                            <optgroup key={group.category} label={group.category}>
+                              {group.instruments.map((instrument) => (
+                                <option key={instrument} value={instrument}>
+                                  {instrument}
+                                </option>
+                              ))}
+                            </optgroup>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      // Tryb dodawania - pokazujemy checkboxy
+                      <div>
+                        <div className="flex justify-between items-center mb-3">
+                          <label className="block text-base font-semibold text-gray-800">
+                            Instrumenty/Głosy * ({selectedInstruments.length} wybrano)
+                          </label>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const allInstruments = ORCHESTRA_INSTRUMENTS.flatMap(g => g.instruments)
+                                setSelectedInstruments(allInstruments)
+                              }}
+                              className="text-sm px-3 py-1 bg-pastel-gold text-gray-800 rounded-lg hover:bg-opacity-80 font-medium"
+                            >
+                              Zaznacz wszystko
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedInstruments([])}
+                              className="text-sm px-3 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
+                            >
+                              Odznacz wszystko
+                            </button>
+                          </div>
+                        </div>
+                        <div className="max-h-96 overflow-y-auto border-2 border-pastel-gold rounded-lg p-4 bg-white">
+                          {ORCHESTRA_INSTRUMENTS.map((group) => {
+                            const allSelected = group.instruments.every(inst => selectedInstruments.includes(inst))
+                            const someSelected = group.instruments.some(inst => selectedInstruments.includes(inst))
+                            
+                            return (
+                              <div key={group.category} className="mb-4 last:mb-0">
+                                <div className="flex items-center mb-2 pb-2 border-b border-pastel-gold">
+                                  <input
+                                    type="checkbox"
+                                    checked={allSelected}
+                                    onChange={() => toggleAllInCategory(group.category)}
+                                    className="w-5 h-5 text-pastel-burgundy border-2 border-pastel-gold rounded focus:ring-2 focus:ring-pastel-burgundy"
+                                  />
+                                  <label className="ml-3 text-base font-bold text-gray-900 cursor-pointer" onClick={() => toggleAllInCategory(group.category)}>
+                                    {group.category} {someSelected && !allSelected && '(częściowo)'}
+                                  </label>
+                                </div>
+                                <div className="ml-8 space-y-2">
+                                  {group.instruments.map((instrument) => (
+                                    <div key={instrument} className="flex items-center">
+                                      <input
+                                        type="checkbox"
+                                        id={instrument}
+                                        checked={selectedInstruments.includes(instrument)}
+                                        onChange={() => toggleInstrument(instrument)}
+                                        className="w-4 h-4 text-pastel-burgundy border-2 border-pastel-gold rounded focus:ring-2 focus:ring-pastel-burgundy"
+                                      />
+                                      <label htmlFor={instrument} className="ml-2 text-base text-gray-700 cursor-pointer">
+                                        {instrument}
+                                      </label>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Numer katalogowy</label>
+                      <label className="block text-base font-semibold text-gray-800 mb-2">Numer katalogowy</label>
                       <input
                         type="text"
                         value={formData.catalogNumber}
                         onChange={(e) => setFormData({ ...formData, catalogNumber: e.target.value })}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                        className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
                         placeholder="np. OP-2024-001"
                       />
                     </div>
                   </div>
                 </div>
                 
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <div className="bg-pastel-gold px-6 py-4 sm:px-8 sm:flex sm:flex-row-reverse gap-3">
                   <button
                     type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-800 text-base font-medium text-white hover:bg-gray-900 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+                    className="w-full inline-flex justify-center rounded-xl border-2 border-pastel-burgundy shadow-lg px-6 py-3 bg-pastel-burgundy text-lg font-bold text-white hover:bg-opacity-90 focus:outline-none sm:w-auto transition-all"
                   >
-                    {editingScore ? 'Zapisz' : 'Dodaj'}
+                    {editingScore 
+                      ? 'Zapisz' 
+                      : selectedInstruments.length > 0 
+                        ? `Dodaj ${selectedInstruments.length} ${selectedInstruments.length === 1 ? 'głos' : selectedInstruments.length < 5 ? 'głosy' : 'głosów'}`
+                        : 'Dodaj'
+                    }
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="mt-3 w-full inline-flex justify-center rounded-xl border-2 border-gray-400 shadow-md px-6 py-3 bg-white text-lg font-semibold text-gray-700 hover:bg-gray-100 focus:outline-none sm:mt-0 sm:w-auto transition-all"
                   >
                     Anuluj
                   </button>

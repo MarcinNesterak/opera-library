@@ -93,11 +93,28 @@ export default function Musicians() {
     }
   }
 
-  const filteredMusicians = musicians.filter(m =>
-    m.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.instrument.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredMusicians = musicians.filter(m => {
+    // Rozbij wyszukiwane wyrazy na pojedyncze słowa
+    const searchWords = searchTerm.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0)
+    
+    // Jeśli nie ma żadnego słowa do wyszukania, pokaż wszystko
+    if (searchWords.length === 0) return true
+    
+    // Sprawdź czy każde słowo występuje w którymkolwiek polu
+    return searchWords.every(word => {
+      const firstName = m.firstName.toLowerCase()
+      const lastName = m.lastName.toLowerCase()
+      const instrument = m.instrument.toLowerCase()
+      const email = m.email.toLowerCase()
+      const phone = m.phone ? m.phone.toLowerCase() : ''
+      
+      return firstName.includes(word) || 
+             lastName.includes(word) || 
+             instrument.includes(word) ||
+             email.includes(word) ||
+             phone.includes(word)
+    })
+  })
 
   if (loading) {
     return (
@@ -126,7 +143,7 @@ export default function Musicians() {
         <div className="bg-pastel-peach p-6 rounded-xl shadow-lg border-2 border-pastel-gold">
           <input
             type="text"
-            placeholder="🔍 Szukaj po imieniu, nazwisku lub instrumencie..."
+            placeholder="🔍 Szukaj po wielu słowach, np. 'Jan Kowalski' lub 'trąbka gmail'..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-5 py-3 text-base border-2 border-pastel-gold rounded-lg focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
@@ -241,82 +258,82 @@ export default function Musicians() {
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowModal(false)}></div>
 
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className="inline-block align-bottom bg-pastel-beige rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border-2 border-pastel-gold">
               <form onSubmit={handleSubmit}>
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                <div className="bg-pastel-beige px-6 pt-6 pb-5 sm:p-8 sm:pb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-5">
                     {editingMusician ? 'Edytuj muzyka' : 'Dodaj muzyka'}
                   </h3>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Imię *</label>
+                      <label className="block text-base font-semibold text-gray-800 mb-2">Imię *</label>
                       <input
                         type="text"
                         required
                         value={formData.firstName}
                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                        className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Nazwisko *</label>
+                      <label className="block text-base font-semibold text-gray-800 mb-2">Nazwisko *</label>
                       <input
                         type="text"
                         required
                         value={formData.lastName}
                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                        className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Email *</label>
+                      <label className="block text-base font-semibold text-gray-800 mb-2">Email *</label>
                       <input
                         type="email"
                         required
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                        className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Telefon</label>
+                      <label className="block text-base font-semibold text-gray-800 mb-2">Telefon</label>
                       <input
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                        className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Instrument *</label>
+                      <label className="block text-base font-semibold text-gray-800 mb-2">Instrument *</label>
                       <input
                         type="text"
                         required
                         value={formData.instrument}
                         onChange={(e) => setFormData({ ...formData, instrument: e.target.value })}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                        className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
                         placeholder="np. Trąbka, Skrzypce"
                       />
                     </div>
                   </div>
                 </div>
                 
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <div className="bg-pastel-gold px-6 py-4 sm:px-8 sm:flex sm:flex-row-reverse gap-3">
                   <button
                     type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-800 text-base font-medium text-white hover:bg-gray-900 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+                    className="w-full inline-flex justify-center rounded-xl border-2 border-pastel-burgundy shadow-lg px-6 py-3 bg-pastel-burgundy text-lg font-bold text-white hover:bg-opacity-90 focus:outline-none sm:w-auto transition-all"
                   >
                     {editingMusician ? 'Zapisz' : 'Dodaj'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="mt-3 w-full inline-flex justify-center rounded-xl border-2 border-gray-400 shadow-md px-6 py-3 bg-white text-lg font-semibold text-gray-700 hover:bg-gray-100 focus:outline-none sm:mt-0 sm:w-auto transition-all"
                   >
                     Anuluj
                   </button>
