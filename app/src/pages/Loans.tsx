@@ -16,6 +16,8 @@ export default function Loans() {
     musicianId: '',
     scoreId: '',
   })
+  const [musicianSearch, setMusicianSearch] = useState('')
+  const [scoreSearch, setScoreSearch] = useState('')
 
   useEffect(() => {
     loadData()
@@ -63,21 +65,21 @@ export default function Loans() {
 
   function openAddModal() {
     setFormData({ musicianId: '', scoreId: '' })
+    setMusicianSearch('')
+    setScoreSearch('')
     setShowModal(true)
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     
+    // Walidacja - upewnij się że muzyk i nuty zostały wybrane
+    if (!formData.musicianId || !formData.scoreId) {
+      alert('Wybierz muzyka i nuty przed dodaniem wypożyczenia')
+      return
+    }
+    
     try {
-      // const musician = musicians.find(m => m.id === formData.musicianId)
-      // const score = scores.find(s => s.id === formData.scoreId)
-      
-      // if (!musician || !score) {
-      //   alert('Wybierz muzyka i nuty')
-      //   return
-      // }
-
       // Dodaj wypożyczenie
       await addDoc(collection(db, 'loans'), {
         musicianId: formData.musicianId,
@@ -173,6 +175,42 @@ export default function Loans() {
     const score = scores.find(s => s.id === scoreId)
     return score ? `${score.title} - ${score.composer} (${score.part})` : 'Nieznane'
   }
+
+  // Filtrowanie muzyków z wielosłownym wyszukiwaniem
+  const filteredMusicians = musicians.filter(m => {
+    const searchWords = musicianSearch.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0)
+    if (searchWords.length === 0) return true
+    
+    return searchWords.every(word => {
+      const firstName = m.firstName.toLowerCase()
+      const lastName = m.lastName.toLowerCase()
+      const instrument = m.instrument.toLowerCase()
+      const email = m.email.toLowerCase()
+      
+      return firstName.includes(word) || 
+             lastName.includes(word) || 
+             instrument.includes(word) ||
+             email.includes(word)
+    })
+  })
+
+  // Filtrowanie nut z wielosłownym wyszukiwaniem
+  const filteredScores = scores.filter(s => {
+    const searchWords = scoreSearch.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0)
+    if (searchWords.length === 0) return true
+    
+    return searchWords.every(word => {
+      const title = s.title.toLowerCase()
+      const composer = s.composer.toLowerCase()
+      const part = s.part.toLowerCase()
+      const catalog = s.catalogNumber ? s.catalogNumber.toLowerCase() : ''
+      
+      return title.includes(word) || 
+             composer.includes(word) || 
+             part.includes(word) || 
+             catalog.includes(word)
+    })
+  })
 
   if (loading) {
     return (
@@ -370,42 +408,120 @@ export default function Loans() {
                   </h3>
                   
                   <div className="space-y-5">
+                    {/* Wyszukiwarka muzyka */}
                     <div>
                       <label className="block text-base font-semibold text-gray-800 mb-2">
-                        Wybierz muzyka *
+                        Wybierz muzyka * {formData.musicianId && '✓'}
                       </label>
-                      <select
-                        required
-                        value={formData.musicianId}
-                        onChange={(e) => setFormData({ ...formData, musicianId: e.target.value })}
+                      <input
+                        type="text"
+                        value={musicianSearch}
+                        onChange={(e) => setMusicianSearch(e.target.value)}
+                        placeholder="🔍 Szukaj po imieniu, nazwisku lub instrumencie..."
                         className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
-                      >
-                        <option value="">-- Wybierz muzyka --</option>
-                        {musicians.map((musician) => (
-                          <option key={musician.id} value={musician.id}>
-                            {musician.firstName} {musician.lastName} ({musician.instrument})
-                          </option>
-                        ))}
-                      </select>
+                      />
+                      {formData.musicianId && (
+                        <div className="mt-2 p-3 bg-green-100 border border-green-300 rounded-lg">
+                          <p className="text-sm font-medium text-green-900">
+                            Wybrano: {getMusicianName(formData.musicianId)}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData({ ...formData, musicianId: '' })
+                              setMusicianSearch('')
+                            }}
+                            className="text-xs text-red-600 hover:text-red-800 mt-1"
+                          >
+                            Wyczyść wybór
+                          </button>
+                        </div>
+                      )}
+                      <div className="mt-2 max-h-48 overflow-y-auto border-2 border-pastel-gold rounded-lg bg-white">
+                        {filteredMusicians.length === 0 ? (
+                          <p className="text-center text-gray-500 py-4 text-sm">Brak muzyków spełniających kryteria</p>
+                        ) : (
+                          filteredMusicians.slice(0, 10).map((musician) => (
+                            <button
+                              key={musician.id}
+                              type="button"
+                              onClick={() => {
+                                setFormData({ ...formData, musicianId: musician.id })
+                                setMusicianSearch('')
+                              }}
+                              className={`w-full text-left px-4 py-3 hover:bg-pastel-cream border-b border-pastel-gold last:border-b-0 transition-colors ${
+                                formData.musicianId === musician.id ? 'bg-pastel-gold font-bold' : ''
+                              }`}
+                            >
+                              <p className="font-semibold text-gray-900">{musician.firstName} {musician.lastName}</p>
+                              <p className="text-sm text-gray-600">{musician.instrument} • {musician.email}</p>
+                            </button>
+                          ))
+                        )}
+                        {filteredMusicians.length > 10 && (
+                          <p className="text-center text-gray-500 py-2 text-xs bg-gray-50">
+                            ...i {filteredMusicians.length - 10} więcej. Doprecyzuj wyszukiwanie.
+                          </p>
+                        )}
+                      </div>
                     </div>
                     
+                    {/* Wyszukiwarka nut */}
                     <div>
                       <label className="block text-base font-semibold text-gray-800 mb-2">
-                        Wybierz nuty *
+                        Wybierz nuty * {formData.scoreId && '✓'}
                       </label>
-                      <select
-                        required
-                        value={formData.scoreId}
-                        onChange={(e) => setFormData({ ...formData, scoreId: e.target.value })}
+                      <input
+                        type="text"
+                        value={scoreSearch}
+                        onChange={(e) => setScoreSearch(e.target.value)}
+                        placeholder="🔍 Szukaj po tytule, kompozytorze, głosie..."
                         className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy"
-                      >
-                        <option value="">-- Wybierz nuty --</option>
-                        {scores.map((score) => (
-                          <option key={score.id} value={score.id}>
-                            {score.title} - {score.composer} ({score.part})
-                          </option>
-                        ))}
-                      </select>
+                      />
+                      {formData.scoreId && (
+                        <div className="mt-2 p-3 bg-green-100 border border-green-300 rounded-lg">
+                          <p className="text-sm font-medium text-green-900">
+                            Wybrano: {getScoreInfo(formData.scoreId)}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData({ ...formData, scoreId: '' })
+                              setScoreSearch('')
+                            }}
+                            className="text-xs text-red-600 hover:text-red-800 mt-1"
+                          >
+                            Wyczyść wybór
+                          </button>
+                        </div>
+                      )}
+                      <div className="mt-2 max-h-48 overflow-y-auto border-2 border-pastel-gold rounded-lg bg-white">
+                        {filteredScores.length === 0 ? (
+                          <p className="text-center text-gray-500 py-4 text-sm">Brak nut spełniających kryteria</p>
+                        ) : (
+                          filteredScores.slice(0, 10).map((score) => (
+                            <button
+                              key={score.id}
+                              type="button"
+                              onClick={() => {
+                                setFormData({ ...formData, scoreId: score.id })
+                                setScoreSearch('')
+                              }}
+                              className={`w-full text-left px-4 py-3 hover:bg-pastel-cream border-b border-pastel-gold last:border-b-0 transition-colors ${
+                                formData.scoreId === score.id ? 'bg-pastel-gold font-bold' : ''
+                              }`}
+                            >
+                              <p className="font-semibold text-gray-900">{score.title}</p>
+                              <p className="text-sm text-gray-600">{score.composer} • {score.part}</p>
+                            </button>
+                          ))
+                        )}
+                        {filteredScores.length > 10 && (
+                          <p className="text-center text-gray-500 py-2 text-xs bg-gray-50">
+                            ...i {filteredScores.length - 10} więcej. Doprecyzuj wyszukiwanie.
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     <div className="bg-blue-100 p-4 rounded-lg border-2 border-blue-200">
