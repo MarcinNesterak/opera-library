@@ -233,7 +233,7 @@ export default function Scores() {
         </div>
 
         {/* Lista nut - widok tabeli na większych ekranach */}
-        <div className="hidden md:block bg-pastel-peach shadow-lg rounded-xl overflow-hidden border-2 border-pastel-gold">
+        <div className="hidden lg:block bg-pastel-peach shadow-lg rounded-xl overflow-hidden border-2 border-pastel-gold">
           <table className="min-w-full divide-y-2 divide-pastel-gold">
             <thead className="bg-pastel-beige">
               <tr>
@@ -300,7 +300,7 @@ export default function Scores() {
         </div>
 
         {/* Lista nut - widok kart na małych ekranach */}
-        <div className="md:hidden space-y-4">
+        <div className="lg:hidden space-y-4">
           {filteredScores.length === 0 ? (
             <div className="bg-pastel-lavender rounded-xl shadow-lg p-8 text-center text-gray-600 text-lg border-2 border-pastel-gold">
               Brak nut w bazie

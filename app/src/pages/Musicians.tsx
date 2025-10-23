@@ -151,7 +151,7 @@ export default function Musicians() {
         </div>
 
         {/* Lista muzyków - widok tabeli na większych ekranach */}
-        <div className="hidden md:block bg-pastel-beige shadow-lg rounded-xl overflow-hidden border-2 border-pastel-gold">
+        <div className="hidden lg:block bg-pastel-beige shadow-lg rounded-xl overflow-hidden border-2 border-pastel-gold">
           <table className="min-w-full divide-y-2 divide-pastel-gold">
             <thead className="bg-pastel-lavender">
               <tr>
@@ -218,7 +218,7 @@ export default function Musicians() {
         </div>
 
         {/* Lista muzyków - widok kart na małych ekranach */}
-        <div className="md:hidden space-y-4">
+        <div className="lg:hidden space-y-4">
           {filteredMusicians.length === 0 ? (
             <div className="bg-pastel-peach rounded-xl shadow-lg p-8 text-center text-gray-600 text-lg border-2 border-pastel-gold">
               Brak muzyków w bazie
