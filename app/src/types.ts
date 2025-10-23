@@ -26,6 +26,7 @@ export interface Loan {
   loanDate: Date
   returnDate: Date | null
   status: 'active' | 'returned'
+  notes?: string  // Uwagi do wypożyczenia (np. nietypowe instrumenty)
   createdAt: Date
 }
 

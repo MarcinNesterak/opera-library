@@ -15,6 +15,7 @@ export default function Loans() {
   const [formData, setFormData] = useState({
     musicianId: '',
     scoreId: '',
+    notes: '',
   })
   const [musicianSearch, setMusicianSearch] = useState('')
   const [scoreSearch, setScoreSearch] = useState('')
@@ -65,7 +66,7 @@ export default function Loans() {
   }
 
   function openAddModal() {
-    setFormData({ musicianId: '', scoreId: '' })
+    setFormData({ musicianId: '', scoreId: '', notes: '' })
     setMusicianSearch('')
     setScoreSearch('')
     setShowModal(true)
@@ -88,6 +89,7 @@ export default function Loans() {
         loanDate: Timestamp.now(),
         returnDate: null,
         status: 'active',
+        notes: formData.notes.trim() || undefined,  // Dodaj uwagi jeśli nie są puste
         createdAt: Timestamp.now()
       })
 
@@ -319,7 +321,7 @@ export default function Loans() {
         </div>
 
         {/* Lista wypożyczeń - widok tabeli na większych ekranach */}
-        <div className="hidden md:block bg-pastel-lavender shadow-lg rounded-xl overflow-hidden border-2 border-pastel-gold">
+        <div className="hidden lg:block bg-pastel-lavender shadow-lg rounded-xl overflow-hidden border-2 border-pastel-gold">
           <table className="min-w-full divide-y-2 divide-pastel-gold">
             <thead className="bg-pastel-beige">
               <tr>
@@ -362,6 +364,11 @@ export default function Loans() {
                       <div className="text-base text-gray-800">
                         {getScoreInfo(loan.scoreId)}
                       </div>
+                      {loan.notes && (
+                        <div className="mt-1 text-sm text-gray-600 italic">
+                          💬 {loan.notes}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
                       {loan.loanDate.toLocaleDateString('pl-PL')}
@@ -397,8 +404,8 @@ export default function Loans() {
           </table>
         </div>
 
-        {/* Lista wypożyczeń - widok kart na małych ekranach */}
-        <div className="md:hidden space-y-4">
+        {/* Lista wypożyczeń - widok kart na małych i średnich ekranach */}
+        <div className="lg:hidden space-y-4">
           {filteredLoans.length === 0 ? (
             <div className="bg-pastel-peach rounded-xl shadow-lg p-8 text-center text-gray-600 text-lg border-2 border-pastel-gold">
               Brak wypożyczeń
@@ -421,6 +428,11 @@ export default function Loans() {
                   </div>
                   <div className="text-base text-gray-700 space-y-2 pt-2">
                     <p><strong>Nuty:</strong> {getScoreInfo(loan.scoreId)}</p>
+                    {loan.notes && (
+                      <p className="text-sm text-gray-600 italic bg-pastel-cream px-3 py-2 rounded-lg">
+                        💬 <strong>Uwagi:</strong> {loan.notes}
+                      </p>
+                    )}
                     <p><strong>Wypożyczono:</strong> {loan.loanDate.toLocaleDateString('pl-PL')}</p>
                     <p><strong>Zwrócono:</strong> {loan.returnDate ? loan.returnDate.toLocaleDateString('pl-PL') : '-'}</p>
                   </div>
@@ -569,6 +581,21 @@ export default function Loans() {
                           </p>
                         )}
                       </div>
+                    </div>
+
+                    {/* Pole uwagi */}
+                    <div>
+                      <label htmlFor="notes" className="block text-base font-semibold text-gray-800 mb-2">
+                        Uwagi (opcjonalne)
+                      </label>
+                      <textarea
+                        id="notes"
+                        value={formData.notes}
+                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                        placeholder="Np. nietypowy instrument (klarnet es), dodatkowe informacje..."
+                        rows={3}
+                        className="mt-1 block w-full border-2 border-pastel-gold rounded-lg shadow-sm py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-pastel-burgundy focus:border-pastel-burgundy resize-none"
+                      />
                     </div>
 
                     <div className="bg-blue-100 p-4 rounded-lg border-2 border-blue-200">
