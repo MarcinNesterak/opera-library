@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, getDocs, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore'
+import { collection, getDocs, addDoc, updateDoc, doc, Timestamp, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase'
 import { Loan, Musician, Score } from '../types'
 import Layout from '../components/Layout'
@@ -20,6 +20,7 @@ export default function Loans() {
   const [musicianSearch, setMusicianSearch] = useState('')
   const [scoreSearch, setScoreSearch] = useState('')
   const [loanSearch, setLoanSearch] = useState('')
+  const [selectedLoanIds, setSelectedLoanIds] = useState<string[]>([])
 
   useEffect(() => {
     loadData()
@@ -83,15 +84,21 @@ export default function Loans() {
     
     try {
       // Dodaj wypożyczenie
-      await addDoc(collection(db, 'loans'), {
+      const loanData: any = {
         musicianId: formData.musicianId,
         scoreId: formData.scoreId,
         loanDate: Timestamp.now(),
         returnDate: null,
         status: 'active',
-        notes: formData.notes.trim() || undefined,  // Dodaj uwagi jeśli nie są puste
         createdAt: Timestamp.now()
-      })
+      }
+      
+      // Dodaj pole notes tylko jeśli nie jest puste
+      if (formData.notes.trim()) {
+        loanData.notes = formData.notes.trim()
+      }
+      
+      await addDoc(collection(db, 'loans'), loanData)
 
       // Wyślij email powiadomienia
       /* 
@@ -160,6 +167,85 @@ export default function Loans() {
     } catch (error) {
       console.error('Błąd zwrotu wypożyczenia:', error)
       alert('Wystąpił błąd podczas zwrotu')
+    }
+  }
+
+  function toggleLoanSelection(loanId: string) {
+    setSelectedLoanIds(prev => 
+      prev.includes(loanId)
+        ? prev.filter(id => id !== loanId)
+        : [...prev, loanId]
+    )
+  }
+
+  function toggleAllLoans() {
+    if (selectedLoanIds.length === filteredLoans.length) {
+      setSelectedLoanIds([])
+    } else {
+      setSelectedLoanIds(filteredLoans.map(loan => loan.id))
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (selectedLoanIds.length === 0) return
+    
+    const confirmMsg = `Czy na pewno chcesz usunąć ${selectedLoanIds.length} ${
+      selectedLoanIds.length === 1 ? 'wypożyczenie' : 
+      selectedLoanIds.length < 5 ? 'wypożyczenia' : 'wypożyczeń'
+    }?`
+    
+    if (!confirm(confirmMsg)) return
+
+    try {
+      const batch = writeBatch(db)
+      selectedLoanIds.forEach(id => {
+        batch.delete(doc(db, 'loans', id))
+      })
+      await batch.commit()
+      
+      setSelectedLoanIds([])
+      loadData()
+    } catch (error) {
+      console.error('Błąd usuwania wypożyczeń:', error)
+      alert('Wystąpił błąd podczas usuwania')
+    }
+  }
+
+  async function handleBulkReturn() {
+    if (selectedLoanIds.length === 0) return
+    
+    const activeSelected = selectedLoanIds.filter(id => {
+      const loan = loans.find(l => l.id === id)
+      return loan && loan.status === 'active'
+    })
+
+    if (activeSelected.length === 0) {
+      alert('Nie wybrano żadnych aktywnych wypożyczeń')
+      return
+    }
+    
+    const confirmMsg = `Czy na pewno chcesz oznaczyć ${activeSelected.length} ${
+      activeSelected.length === 1 ? 'wypożyczenie' : 
+      activeSelected.length < 5 ? 'wypożyczenia' : 'wypożyczeń'
+    } jako zwrócone?`
+    
+    if (!confirm(confirmMsg)) return
+
+    try {
+      const batch = writeBatch(db)
+      activeSelected.forEach(id => {
+        batch.update(doc(db, 'loans', id), {
+          returnDate: Timestamp.now(),
+          status: 'returned'
+        })
+      })
+      await batch.commit()
+      
+      setSelectedLoanIds([])
+      loadData()
+    } catch (error) {
+      console.error('Błąd zwracania wypożyczeń:', error)
+      alert('Wystąpił błąd podczas zwracania')
     }
   }
 
@@ -325,6 +411,15 @@ export default function Loans() {
           <table className="min-w-full divide-y-2 divide-pastel-gold">
             <thead className="bg-pastel-beige">
               <tr>
+                <th className="px-6 py-4 text-left">
+                  <input
+                    type="checkbox"
+                    checked={filteredLoans.length > 0 && selectedLoanIds.length === filteredLoans.length}
+                    onChange={toggleAllLoans}
+                    className="w-5 h-5 text-pastel-burgundy border-2 border-pastel-gold rounded focus:ring-2 focus:ring-pastel-burgundy cursor-pointer"
+                    title="Zaznacz wszystkie"
+                  />
+                </th>
                 <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Muzyk
                 </th>
@@ -348,13 +443,21 @@ export default function Loans() {
             <tbody className="bg-white divide-y divide-pastel-gold">
               {filteredLoans.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-6 text-center text-gray-600 text-lg">
+                  <td colSpan={7} className="px-6 py-6 text-center text-gray-600 text-lg">
                     Brak wypożyczeń
                   </td>
                 </tr>
               ) : (
                 filteredLoans.map((loan) => (
                   <tr key={loan.id} className="hover:bg-pastel-cream transition-colors">
+                    <td className="px-6 py-5">
+                      <input
+                        type="checkbox"
+                        checked={selectedLoanIds.includes(loan.id)}
+                        onChange={() => toggleLoanSelection(loan.id)}
+                        className="w-5 h-5 text-pastel-burgundy border-2 border-pastel-gold rounded focus:ring-2 focus:ring-pastel-burgundy cursor-pointer"
+                      />
+                    </td>
                     <td className="px-6 py-5">
                       <div className="text-base font-bold text-gray-900">
                         {getMusicianName(loan.musicianId)}
@@ -406,6 +509,23 @@ export default function Loans() {
 
         {/* Lista wypożyczeń - widok kart na małych i średnich ekranach */}
         <div className="lg:hidden space-y-4">
+          {/* Checkbox "Zaznacz wszystkie" dla mobile */}
+          {filteredLoans.length > 0 && (
+            <div className="bg-pastel-beige p-4 rounded-xl shadow-lg border-2 border-pastel-gold">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filteredLoans.length > 0 && selectedLoanIds.length === filteredLoans.length}
+                  onChange={toggleAllLoans}
+                  className="w-5 h-5 text-pastel-burgundy border-2 border-pastel-gold rounded focus:ring-2 focus:ring-pastel-burgundy cursor-pointer"
+                />
+                <span className="ml-3 text-base font-semibold text-gray-800">
+                  Zaznacz wszystkie ({filteredLoans.length})
+                </span>
+              </label>
+            </div>
+          )}
+
           {filteredLoans.length === 0 ? (
             <div className="bg-pastel-peach rounded-xl shadow-lg p-8 text-center text-gray-600 text-lg border-2 border-pastel-gold">
               Brak wypożyczeń
@@ -414,27 +534,37 @@ export default function Loans() {
             filteredLoans.map((loan) => (
               <div key={loan.id} className="bg-pastel-lavender rounded-xl shadow-lg border-2 border-pastel-gold">
                 <div className="p-5 space-y-3">
-                  <div>
-                    <span
-                      className={`px-3 py-2 inline-flex text-sm font-bold rounded-lg float-right ${
-                        loan.status === 'active'
-                          ? 'bg-yellow-200 text-yellow-900'
-                          : 'bg-green-200 text-green-900'
-                      }`}
-                    >
-                      {loan.status === 'active' ? 'Wypożyczone' : 'Zwrócone'}
-                    </span>
-                    <h3 className="text-lg font-bold text-gray-900 pr-24">{getMusicianName(loan.musicianId)}</h3>
-                  </div>
-                  <div className="text-base text-gray-700 space-y-2 pt-2">
-                    <p><strong>Nuty:</strong> {getScoreInfo(loan.scoreId)}</p>
-                    {loan.notes && (
-                      <p className="text-sm text-gray-600 italic bg-pastel-cream px-3 py-2 rounded-lg">
-                        💬 <strong>Uwagi:</strong> {loan.notes}
-                      </p>
-                    )}
-                    <p><strong>Wypożyczono:</strong> {loan.loanDate.toLocaleDateString('pl-PL')}</p>
-                    <p><strong>Zwrócono:</strong> {loan.returnDate ? loan.returnDate.toLocaleDateString('pl-PL') : '-'}</p>
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedLoanIds.includes(loan.id)}
+                      onChange={() => toggleLoanSelection(loan.id)}
+                      className="w-5 h-5 text-pastel-burgundy border-2 border-pastel-gold rounded focus:ring-2 focus:ring-pastel-burgundy cursor-pointer mt-1"
+                    />
+                    <div className="flex-1">
+                      <div>
+                        <span
+                          className={`px-3 py-2 inline-flex text-sm font-bold rounded-lg float-right ${
+                            loan.status === 'active'
+                              ? 'bg-yellow-200 text-yellow-900'
+                              : 'bg-green-200 text-green-900'
+                          }`}
+                        >
+                          {loan.status === 'active' ? 'Wypożyczone' : 'Zwrócone'}
+                        </span>
+                        <h3 className="text-lg font-bold text-gray-900 pr-24">{getMusicianName(loan.musicianId)}</h3>
+                      </div>
+                      <div className="text-base text-gray-700 space-y-2 pt-2">
+                        <p><strong>Nuty:</strong> {getScoreInfo(loan.scoreId)}</p>
+                        {loan.notes && (
+                          <p className="text-sm text-gray-600 italic bg-pastel-cream px-3 py-2 rounded-lg">
+                            💬 <strong>Uwagi:</strong> {loan.notes}
+                          </p>
+                        )}
+                        <p><strong>Wypożyczono:</strong> {loan.loanDate.toLocaleDateString('pl-PL')}</p>
+                        <p><strong>Zwrócono:</strong> {loan.returnDate ? loan.returnDate.toLocaleDateString('pl-PL') : '-'}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 {loan.status === 'active' && (
@@ -452,6 +582,42 @@ export default function Loans() {
           )}
         </div>
       </div>
+
+      {/* Sticky bar z akcjami - pojawia się gdy coś jest zaznaczone */}
+      {selectedLoanIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-pastel-burgundy text-white shadow-2xl border-t-4 border-pastel-gold z-40 pb-20 md:pb-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-lg font-bold">
+                ✓ Zaznaczono: {selectedLoanIds.length} {
+                  selectedLoanIds.length === 1 ? 'wypożyczenie' : 
+                  selectedLoanIds.length < 5 ? 'wypożyczenia' : 'wypożyczeń'
+                }
+              </div>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <button
+                  onClick={handleBulkReturn}
+                  className="px-6 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-all shadow-lg text-base"
+                >
+                  ↩️ Oznacz jako zwrócone
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  className="px-6 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-all shadow-lg text-base"
+                >
+                  🗑️ Usuń zaznaczone
+                </button>
+                <button
+                  onClick={() => setSelectedLoanIds([])}
+                  className="px-6 py-2 bg-gray-100 text-gray-800 font-semibold rounded-lg hover:bg-gray-200 transition-all shadow-lg text-base"
+                >
+                  Anuluj
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal dodawania wypożyczenia */}
       {showModal && (

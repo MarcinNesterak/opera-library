@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore'
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, Timestamp, query, where, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase'
 import { Score } from '../types'
 import Layout from '../components/Layout'
@@ -59,6 +59,7 @@ export default function Scores() {
   const [showModal, setShowModal] = useState(false)
   const [editingScore, setEditingScore] = useState<Score | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedScoreIds, setSelectedScoreIds] = useState<string[]>([])
   const [formData, setFormData] = useState({
     title: '',
     composer: '',
@@ -177,6 +178,68 @@ export default function Scores() {
     }
   }
 
+  function toggleScoreSelection(scoreId: string) {
+    setSelectedScoreIds(prev => 
+      prev.includes(scoreId)
+        ? prev.filter(id => id !== scoreId)
+        : [...prev, scoreId]
+    )
+  }
+
+  function toggleAllScores() {
+    if (selectedScoreIds.length === filteredScores.length) {
+      setSelectedScoreIds([])
+    } else {
+      setSelectedScoreIds(filteredScores.map(s => s.id))
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (selectedScoreIds.length === 0) return
+    
+    try {
+      // Sprawdź czy nuty są wypożyczone
+      const loansSnapshot = await getDocs(
+        query(collection(db, 'loans'), where('status', '==', 'active'))
+      )
+      
+      const scoresWithLoans = selectedScoreIds.filter(scoreId =>
+        loansSnapshot.docs.some(doc => doc.data().scoreId === scoreId)
+      )
+
+      if (scoresWithLoans.length > 0) {
+        const scoreNames = scoresWithLoans.map(id => {
+          const s = scores.find(score => score.id === id)
+          return s ? `${s.title} - ${s.composer} (${s.part})` : 'Nieznane'
+        }).join('\n')
+        
+        alert(
+          `Nie można usunąć następujących nut, ponieważ są wypożyczone:\n\n${scoreNames}\n\nNajpierw zwróć wszystkie wypożyczenia tych nut.`
+        )
+        return
+      }
+
+      const confirmMsg = `Czy na pewno chcesz usunąć ${selectedScoreIds.length} ${
+        selectedScoreIds.length === 1 ? 'nuty' : 
+        selectedScoreIds.length < 5 ? 'nuty' : 'nut'
+      }?`
+      
+      if (!confirm(confirmMsg)) return
+
+      const batch = writeBatch(db)
+      selectedScoreIds.forEach(id => {
+        batch.delete(doc(db, 'scores', id))
+      })
+      await batch.commit()
+      
+      setSelectedScoreIds([])
+      loadScores()
+    } catch (error) {
+      console.error('Błąd usuwania nut:', error)
+      alert('Wystąpił błąd podczas usuwania')
+    }
+  }
+
   const filteredScores = scores.filter(s => {
     // Rozbij wyszukiwane wyrazy na pojedyncze słowa
     const searchWords = searchTerm.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0)
@@ -237,6 +300,15 @@ export default function Scores() {
           <table className="min-w-full divide-y-2 divide-pastel-gold">
             <thead className="bg-pastel-beige">
               <tr>
+                <th className="px-6 py-4 text-left">
+                  <input
+                    type="checkbox"
+                    checked={filteredScores.length > 0 && selectedScoreIds.length === filteredScores.length}
+                    onChange={toggleAllScores}
+                    className="w-5 h-5 text-pastel-burgundy border-2 border-pastel-gold rounded focus:ring-2 focus:ring-pastel-burgundy cursor-pointer"
+                    title="Zaznacz wszystkie"
+                  />
+                </th>
                 <th className="px-6 py-4 text-left text-base font-bold text-gray-800 uppercase tracking-wider">
                   Tytuł
                 </th>
@@ -257,13 +329,21 @@ export default function Scores() {
             <tbody className="bg-white divide-y divide-pastel-gold">
               {filteredScores.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-6 text-center text-gray-600 text-lg">
+                  <td colSpan={6} className="px-6 py-6 text-center text-gray-600 text-lg">
                     Brak nut w bazie
                   </td>
                 </tr>
               ) : (
                 filteredScores.map((score) => (
                   <tr key={score.id} className="hover:bg-pastel-cream transition-colors">
+                    <td className="px-6 py-5">
+                      <input
+                        type="checkbox"
+                        checked={selectedScoreIds.includes(score.id)}
+                        onChange={() => toggleScoreSelection(score.id)}
+                        className="w-5 h-5 text-pastel-burgundy border-2 border-pastel-gold rounded focus:ring-2 focus:ring-pastel-burgundy cursor-pointer"
+                      />
+                    </td>
                     <td className="px-6 py-5">
                       <div className="text-base font-bold text-gray-900">
                         {score.title}
@@ -301,6 +381,23 @@ export default function Scores() {
 
         {/* Lista nut - widok kart na małych ekranach */}
         <div className="lg:hidden space-y-4">
+          {/* Checkbox "Zaznacz wszystkie" dla mobile */}
+          {filteredScores.length > 0 && (
+            <div className="bg-pastel-beige p-4 rounded-xl shadow-lg border-2 border-pastel-gold">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filteredScores.length > 0 && selectedScoreIds.length === filteredScores.length}
+                  onChange={toggleAllScores}
+                  className="w-5 h-5 text-pastel-burgundy border-2 border-pastel-gold rounded focus:ring-2 focus:ring-pastel-burgundy cursor-pointer"
+                />
+                <span className="ml-3 text-base font-semibold text-gray-800">
+                  Zaznacz wszystkie ({filteredScores.length})
+                </span>
+              </label>
+            </div>
+          )}
+
           {filteredScores.length === 0 ? (
             <div className="bg-pastel-lavender rounded-xl shadow-lg p-8 text-center text-gray-600 text-lg border-2 border-pastel-gold">
               Brak nut w bazie
@@ -309,10 +406,20 @@ export default function Scores() {
             filteredScores.map((score) => (
               <div key={score.id} className="bg-pastel-peach rounded-xl shadow-lg border-2 border-pastel-gold">
                 <div className="p-5 space-y-3">
-                  <h3 className="text-xl font-bold text-gray-900">{score.title}</h3>
-                  <p className="text-base text-gray-700"><strong>Kompozytor:</strong> {score.composer}</p>
-                  <p className="text-base text-gray-700"><strong>Głos/Partia:</strong> {score.part}</p>
-                  <p className="text-base text-gray-700"><strong>Nr kat.:</strong> {score.catalogNumber || '-'}</p>
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedScoreIds.includes(score.id)}
+                      onChange={() => toggleScoreSelection(score.id)}
+                      className="w-5 h-5 text-pastel-burgundy border-2 border-pastel-gold rounded focus:ring-2 focus:ring-pastel-burgundy cursor-pointer mt-1"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900">{score.title}</h3>
+                      <p className="text-base text-gray-700"><strong>Kompozytor:</strong> {score.composer}</p>
+                      <p className="text-base text-gray-700"><strong>Głos/Partia:</strong> {score.part}</p>
+                      <p className="text-base text-gray-700"><strong>Nr kat.:</strong> {score.catalogNumber || '-'}</p>
+                    </div>
+                  </div>
                 </div>
                 <div className="bg-pastel-gold px-5 py-4 flex justify-end space-x-4 rounded-b-xl">
                   <button
@@ -333,6 +440,36 @@ export default function Scores() {
           )}
         </div>
       </div>
+
+      {/* Sticky bar z akcjami - pojawia się gdy coś jest zaznaczone */}
+      {selectedScoreIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-pastel-burgundy text-white shadow-2xl border-t-4 border-pastel-gold z-40 pb-20 md:pb-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-lg font-bold">
+                ✓ Zaznaczono: {selectedScoreIds.length} {
+                  selectedScoreIds.length === 1 ? 'nuty' : 
+                  selectedScoreIds.length < 5 ? 'nuty' : 'nut'
+                }
+              </div>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <button
+                  onClick={handleBulkDelete}
+                  className="px-6 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-all shadow-lg text-base"
+                >
+                  🗑️ Usuń zaznaczone
+                </button>
+                <button
+                  onClick={() => setSelectedScoreIds([])}
+                  className="px-6 py-2 bg-gray-100 text-gray-800 font-semibold rounded-lg hover:bg-gray-200 transition-all shadow-lg text-base"
+                >
+                  Anuluj
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       {showModal && (
